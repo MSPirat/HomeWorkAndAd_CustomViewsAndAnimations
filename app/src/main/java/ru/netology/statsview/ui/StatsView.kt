@@ -87,18 +87,23 @@ class StatsView @JvmOverloads constructor(
 
         var startAngle = -90F
         data.forEachIndexed { index, datum ->
-            val angle = datum * 360F
+            val angle = (datum / data.maxOrNull()!!.times(data.count())) * 360F
             paint.color = colors.getOrElse(index) { generateRandomColor() }
             canvas.drawArc(oval, startAngle, angle, false, paint)
             startAngle += angle
         }
 
+        val text = (data.sum() / data.maxOrNull()!!.times(data.count())) * 100F
         canvas.drawText(
-            "%.2f%%".format(data.sum() * 100),
+            "%.2f%%".format(text),
             center.x,
             center.y + textPaint.textSize / 4,
             textPaint
         )
+        if (text == 100F) {
+            paint.color = colors[0]
+            canvas.drawArc(oval, startAngle, 1F, false, paint)
+        }
     }
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
