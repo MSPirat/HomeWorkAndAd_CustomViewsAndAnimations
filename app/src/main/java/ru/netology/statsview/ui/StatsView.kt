@@ -107,15 +107,6 @@ class StatsView @JvmOverloads constructor(
         }
 
         var startAngle = -90F
-        val rotation = fullCircleDegrees * move
-        canvas.drawArc(oval, startAngle, fullCircleDegrees, false, paintEmpty)
-        data.forEachIndexed { index, datum ->
-            val angle = (datum / data.maxOrNull()!!.times(data.count())) * fullCircleDegrees
-            paint.color = colors.getOrElse(index) { generateRandomColor() }
-            canvas.drawArc(oval, startAngle + rotation, angle * move, false, paint)
-            startAngle += angle
-        }
-
         val text = (data.sum() / data.maxOrNull()!!.times(data.count())) * 100F
         canvas.drawText(
             "%.2f%%".format(text),
@@ -123,6 +114,22 @@ class StatsView @JvmOverloads constructor(
             center.y + textPaint.textSize / 4,
             textPaint
         )
+//        val rotation = fullCircleDegrees * move
+        val sequentialRotation = fullCircleDegrees * move + startAngle
+        canvas.drawArc(oval, startAngle, fullCircleDegrees, false, paintEmpty)
+        data.forEachIndexed { index, datum ->
+            val rotationAngle = (datum / data.maxOrNull()!!.times(data.count())) * fullCircleDegrees
+            val sequentialRotationAngle = min(rotationAngle, sequentialRotation - startAngle)
+            paint.color = colors.getOrElse(index) { generateRandomColor() }
+//            canvas.drawArc(oval, startAngle + rotation, rotationAngle * move, false, paint)
+            canvas.drawArc(oval, startAngle, sequentialRotationAngle, false, paint)
+            startAngle += rotationAngle
+
+            if (startAngle > sequentialRotation) {
+                return@onDraw
+            }
+        }
+
         if (text == 100F) {
             paint.color = colors[0]
             canvas.drawArc(oval, startAngle + rotation, 1F, false, paint)
